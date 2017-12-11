@@ -1,3 +1,14 @@
+FROM node:9.2
+
+COPY laravel /var/laravel
+
+WORKDIR /var/laravel
+
+RUN npm install \
+  && npm rebuild node-sass \
+  && npm run production
+
+RUN rm -rf ./node_modules
 
 FROM php:7.2-fpm-alpine
 
@@ -9,8 +20,6 @@ RUN apk upgrade --update \
        git \
        zlib-dev \
        nginx \
-       nodejs \
-       nodejs-npm \
     && docker-php-ext-install pdo_mysql zip \
     && mkdir /run/nginx
 
@@ -23,14 +32,11 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 
 # setting up apps
 COPY ./conf/nginx.conf /etc/nginx/nginx.conf
-COPY laravel /var/www/laravel
+COPY --from=0 /var/laravel /var/www/laravel
 WORKDIR /var/www/laravel
 
 # install php libraries && compile laravel mix
-RUN composer install --no-dev \
-    && npm install \
-    && npm rebuild node-sass \
-    && npm run production
+RUN composer install --no-dev
 
 RUN chown www-data:www-data storage/logs \
     && chown -R www-data:www-data storage/framework \
