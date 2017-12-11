@@ -27,7 +27,7 @@ COPY laravel /var/www/laravel
 WORKDIR /var/www/laravel
 
 # install php libraries && compile laravel mix
-RUN composer install \
+RUN composer install --no-dev \
     && npm install \
     && npm rebuild node-sass \
     && npm run production
